@@ -119,16 +119,19 @@ class InterfazPrincipal:
         self.lbl_bienvenida.config(text=f"Bienvenido, {self.config['nombre_usuario']}", font=("Arial", self.config['tamano_fuente']))
 
 class VentanaSettings:
-    """Ventana de configuración del usuario."""
+    """Ventana de configuración del usuario (Corregida para Foto de Perfil)."""
     def __init__(self, parent, config_actual, callback_actualizar):
         self.top = Toplevel(parent)
         self.top.title("Configuración de Usuario (Settings)")
-        self.top.geometry("380x420")
+        self.top.geometry("400x500")
         
         self.config = config_actual.copy()
         self.callback = callback_actualizar
 
-        # Formulario
+        # Variable para almacenar la ruta de la foto seleccionada
+        self.ruta_foto_seleccionada = self.config.get("foto_perfil", "")
+
+        # Formulario de texto
         Label(self.top, text="Nombre de Usuario:").pack(anchor="w", padx=10, pady=2)
         self.entry_usuario = Entry(self.top)
         self.entry_usuario.insert(0, self.config["nombre_usuario"])
@@ -152,36 +155,51 @@ class VentanaSettings:
         # Selectores
         Button(self.top, text="Seleccionar Color Barra Menú", command=self.seleccionar_color_menu).pack(fill="x", padx=10, pady=5)
         Button(self.top, text="Seleccionar Color Letra", command=self.seleccionar_color_letra).pack(fill="x", padx=10, pady=5)
+        
+        # Selector de Foto y Etiqueta para mostrar la ruta actual
         Button(self.top, text="Seleccionar Foto de Perfil", command=self.seleccionar_foto).pack(fill="x", padx=10, pady=5)
+        
+        # Etiqueta visual para confirmar que la ruta fue capturada
+        texto_foto_inicial = self.ruta_foto_seleccionada if self.ruta_foto_seleccionada else "Ninguna foto seleccionada"
+        self.lbl_foto_ruta = Label(self.top, text=f"Foto: {texto_foto_inicial}", fg="gray", wraplength=350, justify="left")
+        self.lbl_foto_ruta.pack(fill="x", padx=10)
 
+        # Botón Guardar
         Button(self.top, text="Guardar Configuración", bg="#4CAF50", fg="white", command=self.guardar).pack(fill="x", padx=10, pady=15)
-def seleccionar_color_menu(self):
-    color = colorchooser.askcolor(title="Color Barra de Menú")[1]
-    if color:
-         self.config["color_barra_menu"] = color
-def seleccionar_color_letra(self):
-    color = colorchooser.askcolor(title="Color de Letra")[1]
-    if color:
-        self.config["color_letra"] = color
 
-def seleccionar_foto(self):
-    ruta = filedialog.askopenfilename(filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.gif")])
-    if ruta:
-        self.config["foto_perfil"] = ruta
+    def seleccionar_color_menu(self):
+        color = colorchooser.askcolor(title="Color Barra de Menú")[1]
+        if color:
+            self.config["color_barra_menu"] = color
 
-def guardar(self):
-    try:
-        self.config["nombre_usuario"] = self.entry_usuario.get()
-        self.config["tema_interfaz"] = self.entry_tema.get()
-        self.config["idioma"] = self.entry_idioma.get()
-        self.config["tamano_fuente"] = int(self.entry_fuente.get())
+    def seleccionar_color_letra(self):
+        color = colorchooser.askcolor(title="Color de Letra")[1]
+        if color:
+            self.config["color_letra"] = color
 
-        if AppConfig.guardar_configuracion(self.config):
-            self.callback(self.config)
-            self.top.destroy()
-    except ValueError:
-        messagebox.showerror("Error de Entrada", "El tamaño de fuente debe ser un número entero válido.")
+    def seleccionar_foto(self):
+        ruta = filedialog.askopenfilename(filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.gif")])
+        if ruta:
+            self.ruta_foto_seleccionada = ruta  # Guardamos la ruta seleccionada
+            self.lbl_foto_ruta.config(text=f"Foto: {ruta}", fg="green")  # Confirmación visual
 
+    def guardar(self):
+        try:
+            # Asignar campos de texto
+            self.config["nombre_usuario"] = self.entry_usuario.get()
+            self.config["tema_interfaz"] = self.entry_tema.get()
+            self.config["idioma"] = self.entry_idioma.get()
+            self.config["tamano_fuente"] = int(self.entry_fuente.get())
+            
+            # Asignar la ruta de la foto de perfil asegurando que se guarde en la estructura final
+            self.config["foto_perfil"] = self.ruta_foto_seleccionada
+
+            # Guardar en archivo JSON
+            if AppConfig.guardar_configuracion(self.config):
+                self.callback(self.config)
+                self.top.destroy()
+        except ValueError:
+            messagebox.showerror("Error de Entrada", "El tamaño de fuente debe ser un número entero válido.")
 if __name__ == "__main__":
     root = Tk()
     app = InterfazPrincipal(root)
