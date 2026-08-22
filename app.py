@@ -156,35 +156,4 @@ class VentanaSettings:
 
         Button(self.top, text="Guardar Configuración", bg="#4CAF50", fg="white", command=self.guardar).pack(fill="x", padx=10, pady=15)
 
-    def seleccionar_color_menu(self):
-        color = colorchooser.askcolor(title="Color Barra de Menú")[1]
-        if color:
-            self.config["color_barra_menu"] = color
-
-    def seleccionar_color_letra(self):
-        color = colorchooser.askcolor(title="Color de Letra")[1]
-        if color:
-            self.config["color_letra"] = color
-
-    def seleccionar_foto(self):
-        ruta = filedialog.askopenfilename(filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.gif")])
-        if ruta:
-            self.config["foto_perfil"] = ruta
-
-    def guardar(self):
-        try:
-            self.config["nombre_usuario"] = self.entry_usuario.get()
-            self.config["tema_interfaz"] = self.entry_tema.get()
-            self.config["idioma"] = self.entry_idioma.get()
-            self.config["tamano_fuente"] = int(self.entry_fuente.get())
-
-            if AppConfig.guardar_configuracion(self.config):
-                self.callback(self.config)
-                self.top.destroy()
-        except ValueError:
-            messagebox.showerror("Error de Entrada", "El tamaño de fuente debe ser un número entero válido.")
-
-if __name__ == "__main__":
-    root = Tk()
-    app = InterfazPrincipal(root)
-    root.mainloop()
+   
