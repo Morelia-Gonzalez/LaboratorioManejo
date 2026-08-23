@@ -10,17 +10,23 @@ try:
 except ImportError:
     PIL_DISPONIBLE = False
 
-# Archivos de configuración
-CONFIG_FILE = "config.json"
-TEMP_FILE = "config.tmp"
-BACKUP_FILE = "config.bak"
+# Directorio base = la carpeta donde vive este script, SIEMPRE, sin importar
+# desde dónde se ejecute (VS Code, doble clic, terminal en otra carpeta, etc.)
+# Esto evita que rutas relativas como "fotos_perfil/x.jpg" apunten a lugares
+# distintos según el directorio de trabajo actual (cwd).
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Archivos de configuración (rutas absolutas)
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+TEMP_FILE = os.path.join(BASE_DIR, "config.tmp")
+BACKUP_FILE = os.path.join(BASE_DIR, "config.bak")
 
 # Tamaño fijo para la miniatura de la foto de perfil
 TAMANO_FOTO = (80, 80)
 
-# Carpeta local donde se copian las fotos de perfil seleccionadas,
+# Carpeta local donde se copian las fotos de perfil seleccionadas (ruta absoluta),
 # para no depender de rutas virtuales/sincronizadas (ej. CrossDevice de Phone Link)
-CARPETA_FOTOS = "fotos_perfil"
+CARPETA_FOTOS = os.path.join(BASE_DIR, "fotos_perfil")
 
 # Configuración por defecto
 DEFAULT_CONFIG = {
@@ -186,7 +192,11 @@ class InterfazPrincipal:
                 self.lbl_foto.config(image=self.imagen_perfil, text="")
             except Exception as e:
                 self.imagen_perfil = None
-                self.lbl_foto.config(image="", text=f"[No se pudo cargar la foto: {e}]")
+                tamano = os.path.getsize(ruta_foto)
+                self.lbl_foto.config(
+                    image="",
+                    text=f"[No se pudo cargar la foto ({tamano} bytes): {e}]"
+                )
         else:
             self.imagen_perfil = None
             self.lbl_foto.config(image="", text="")
