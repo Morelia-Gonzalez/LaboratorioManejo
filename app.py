@@ -10,9 +10,6 @@ try:
 except ImportError:
     PIL_DISPONIBLE = False
 
-# Directorio base = la carpeta donde vive este script, SIEMPRE, sin importar
-# desde dónde se ejecute (VS Code, doble clic, terminal en otra carpeta, etc.)
-# Esto evita que rutas relativas como "fotos_perfil/x.jpg" apunten a lugares
 # distintos según el directorio de trabajo actual (cwd).
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,8 +21,6 @@ BACKUP_FILE = os.path.join(BASE_DIR, "config.bak")
 # Tamaño fijo para la miniatura de la foto de perfil
 TAMANO_FOTO = (80, 80)
 
-# Carpeta local donde se copian las fotos de perfil seleccionadas (ruta absoluta),
-# para no depender de rutas virtuales/sincronizadas (ej. CrossDevice de Phone Link)
 CARPETA_FOTOS = os.path.join(BASE_DIR, "fotos_perfil")
 
 # Configuración por defecto
@@ -169,8 +164,6 @@ class InterfazPrincipal:
         color_letra = self.config.get("color_letra", "#000000")
         self.lbl_bienvenida.config(fg=color_letra)
 
-        # --- Color de fondo (simula la 'barra de menú' coloreando la ventana,
-        #     ya que el widget Menu nativo de Tkinter ignora bg/fg en Windows) ---
         color_fondo = self.config.get("color_barra_menu", "#d9d9d9")
         self.root.config(bg=color_fondo)
         self.lbl_bienvenida.config(bg=color_fondo)
@@ -276,9 +269,6 @@ class VentanaSettings:
         if not ruta:
             return
 
-        # Validar que el archivo realmente se pueda abrir como imagen antes de aceptarlo.
-        # Esto detecta casos como rutas de "CrossDevice"/Phone Link donde el archivo
-        # mostrado es solo un placeholder aún no sincronizado.
         try:
             if PIL_DISPONIBLE:
                 with Image.open(ruta) as img_test:
@@ -295,8 +285,6 @@ class VentanaSettings:
             )
             return
 
-        # Copiar la imagen a una carpeta local propia de la app, para no depender
-        # de rutas virtuales/sincronizadas que puedan desaparecer o dar errores.
         try:
             os.makedirs(CARPETA_FOTOS, exist_ok=True)
             nombre_archivo = os.path.basename(ruta)
