@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QPushButton
 from PyQt6.QtWidgets import QDialog, QLineEdit, QComboBox, QSpinBox
@@ -5,570 +6,1462 @@ from PyQt6.QtWidgets import QColorDialog, QFileDialog, QMessageBox
 from PyQt6.QtGui import QAction, QFont
 from PyQt6.QtCore import Qt
 
+from PyQt6.QtWidgets import QLabel,QPushButton,QStackedWidget
+from PyQt6.QtGui import QPixmap
+
 from app import AppConfig
 
-from PyQt6.QtWidgets import (
-    QFormLayout,
-    QStackedWidget,
-)
+def cargar_configuracion():
 
-from PyQt6.QtGui import QColor, QPixmap
+    resultado = AppConfig.cargar_configuracion()
+
+    if isinstance(resultado, tuple):
+        return resultado[0]
+
+    return resultado
+
+def guardar_configuracion(config):
+
+    resultado = AppConfig.guardar_configuracion(config)
+
+    if isinstance(resultado, tuple):
+        return resultado
+
+    return resultado, ""
 
 
-# VENTANA DE SETTINGS
+# VENTANA PRINCIPAL
+class VentanaPrincipal(QMainWindow):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.config = cargar_configuracion()
+
+        self.setWindowTitle(
+            "Gestión de Configuración de Usuario"
+        )
+
+        self.setMinimumSize(1000, 650)
+
+        self.crear_menu()
+        self.crear_interfaz()
+        self.aplicar_configuracion()
+
+    # MENÚ
+    def crear_menu(self):
+
+        barra = self.menuBar()
+
+        self.menu_archivo = barra.addMenu("Archivo")
+        self.menu_edicion = barra.addMenu("Edición")
+        self.menu_ver = barra.addMenu("Ver")
+        self.menu_settings = barra.addMenu("Settings")
+        self.menu_ayuda = barra.addMenu("Ayuda")
+
+        # ---------------- ARCHIVO ----------------
+
+        salir = QAction("Salir", self)
+        salir.triggered.connect(self.close)
+
+        self.menu_archivo.addAction(salir)
+
+        # ---------------- SETTINGS ----------------
+
+        abrir_settings = QAction(
+            "Abrir Settings",
+            self
+        )
+
+        abrir_settings.triggered.connect(
+            self.abrir_settings
+        )
+
+        self.menu_settings.addAction(
+            abrir_settings
+        )
+
+    # INTERFAZ PRINCIPAL
+
+    def crear_interfaz(self):
+
+        central = QWidget()
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(
+            45,
+            25,
+            45,
+            40
+        )
+
+        layout.setSpacing(0)
+
+        # PANEL IZQUIERDO
+        panel_izquierdo = QWidget()
+
+        panel_izquierdo.setFixedWidth(310)
+
+        layout_izquierdo = QVBoxLayout()
+
+        layout_izquierdo.setContentsMargins(
+            20,
+            0,
+            20,
+            0
+        )
+
+        layout_izquierdo.setAlignment(
+            Qt.AlignmentFlag.AlignTop
+        )
+
+
+        # FOTO
+        self.foto_principal = QLabel()
+
+        self.foto_principal.setFixedSize(
+            180,
+            180
+        )
+
+        self.foto_principal.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        self.foto_principal.setObjectName(
+            "fotoPrincipal"
+        )
+
+        layout_izquierdo.addWidget(
+            self.foto_principal,
+            alignment=Qt.AlignmentFlag.AlignCenter
+        )
+
+        layout_izquierdo.addSpacing(15)
+
+        # BIENVENIDA
+        self.lbl_bienvenida = QLabel(
+            "¡Bienvenido!"
+        )
+
+        self.lbl_bienvenida.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        self.lbl_bienvenida.setFont(
+            QFont(
+                "Arial",
+                28,
+                QFont.Weight.Bold
+            )
+        )
+
+        self.lbl_bienvenida.setObjectName(
+            "bienvenida"
+        )
+
+        layout_izquierdo.addWidget(
+            self.lbl_bienvenida
+        )
+
+
+        # DESCRIPCIÓN
+        descripcion = QLabel(
+            "Gestiona tu configuración\n"
+            "desde Settings."
+        )
+
+        descripcion.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        descripcion.setFont(
+            QFont(
+                "Arial",
+                13
+            )
+        )
+
+        descripcion.setObjectName(
+            "descripcionIzquierda"
+        )
+
+        layout_izquierdo.addWidget(
+            descripcion
+        )
+
+        panel_izquierdo.setLayout(
+            layout_izquierdo
+        )
+
+        # PARTE CENTRAL
+
+        panel_central = QWidget()
+
+        layout_central = QVBoxLayout()
+
+        layout_central.setContentsMargins(
+            30,
+            25,
+            0,
+            0
+        )
+
+        layout_central.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        # ENGRANAJE
+        self.icono_settings = QLabel("⚙")
+
+        self.icono_settings.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        self.icono_settings.setFont(
+            QFont(
+                "Arial",
+                80
+            )
+        )
+
+        self.icono_settings.setObjectName(
+            "iconoSettings"
+        )
+
+        layout_central.addWidget(
+            self.icono_settings
+        )
+
+        layout_central.addSpacing(10)
+
+        # ----------------------------------------------------
+        # TÍTULO
+
+        titulo = QLabel(
+            "Gestión de Configuración de Usuario"
+        )
+
+        titulo.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        titulo.setFont(
+            QFont(
+                "Arial",
+                28,
+                QFont.Weight.Bold
+            )
+        )
+
+        titulo.setObjectName(
+            "tituloPrincipal"
+        )
+
+        layout_central.addWidget(
+            titulo
+        )
+
+        layout_central.addSpacing(10)
+
+        # DESCRIPCIÓN
+        # ----------------------------------------------------
+
+        descripcion_central = QLabel(
+            "Personaliza tu experiencia y guarda tu\n"
+            "configuración de forma segura."
+        )
+
+        descripcion_central.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        descripcion_central.setFont(
+            QFont(
+                "Arial",
+                14
+            )
+        )
+
+        descripcion_central.setObjectName(
+            "descripcionCentral"
+        )
+
+        layout_central.addWidget(
+            descripcion_central
+        )
+
+        layout_central.addSpacing(18)
+
+        # ----------------------------------------------------
+        # BOTÓN
+        # ----------------------------------------------------
+
+        self.btn_settings = QPushButton(
+            "⚙   Abrir Settings"
+        )
+
+        self.btn_settings.setFixedSize(
+            275,
+            65
+        )
+
+        self.btn_settings.setCursor(
+            Qt.CursorShape.PointingHandCursor
+        )
+
+        self.btn_settings.clicked.connect(
+            self.abrir_settings
+        )
+
+        layout_central.addWidget(
+            self.btn_settings,
+            alignment=Qt.AlignmentFlag.AlignCenter
+        )
+
+        panel_central.setLayout(
+            layout_central
+        )
+
+        # ====================================================
+        # AGREGAR TODO
+
+        layout.addWidget(
+            panel_izquierdo
+        )
+
+        layout.addWidget(
+            panel_central,
+            1
+        )
+
+        central.setLayout(layout)
+
+        self.setCentralWidget(central)
+
+    # ABRIR SETTINGS
+    def abrir_settings(self):
+
+        ventana = VentanaSettings(
+            self.config,
+            self.actualizar_interfaz,
+            self
+        )
+
+        ventana.exec()
+
+    # ACTUALIZAR DESPUÉS DE GUARDAR
+
+    def actualizar_interfaz(self, nueva_config):
+
+        self.config = nueva_config.copy()
+
+        self.aplicar_configuracion()
+
+    # ========================================================
+    # APLICAR CONFIGURACIÓN
+    # ========================================================
+
+    def aplicar_configuracion(self):
+
+        tema = self.config.get(
+            "tema_interfaz",
+            "oscuro"
+        )
+
+        color_menu = self.config.get(
+            "color_barra_menu",
+            "#20232A"
+        )
+
+        color_letra = self.config.get(
+            "color_letra",
+            "#EDEDED"
+        )
+
+        tamano = self.config.get(
+            "tamano_fuente",
+            12
+        )
+
+        nombre = self.config.get(
+            "nombre_usuario",
+            "Usuario"
+        )
+
+        foto = self.config.get(
+            "foto_perfil",
+            ""
+        )
+
+        # TEMA OSCURO
+        if tema == "oscuro":
+
+            fondo = "#15171C"
+            texto = "#EDEDED"
+            texto_secundario = "#AAAAAA"
+            morado = "#7048A8"
+            morado_claro = "#A978E0"
+
+        # TEMA CLARO
+        else:
+
+            fondo = "#F4F4F5"
+            texto = "#222222"
+            texto_secundario = "#666666"
+            morado = "#7048A8"
+            morado_claro = "#7048A8"
+
+        # NOMBRE
+
+        self.lbl_bienvenida.setText(
+            f"¡Bienvenido, {nombre}!"
+        )
+
+
+
+        # FOTO
+        if foto and os.path.exists(foto):
+
+            pixmap = QPixmap(foto)
+
+            if not pixmap.isNull():
+
+                pixmap = pixmap.scaled(
+                    170,
+                    170,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+
+                self.foto_principal.setPixmap(
+                    pixmap
+                )
+
+            else:
+
+                self.foto_principal.setText(
+                    "Sin fotografía"
+                )
+
+        else:
+
+            self.foto_principal.setText(
+                "Sin fotografía"
+            )
+
+        # ESTILO
+        self.setStyleSheet(
+            f"""
+            QMainWindow {{
+                background-color: {fondo};
+            }}
+
+            QWidget {{
+                background-color: {fondo};
+                color: {texto};
+                font-size: {tamano}px;
+            }}
+
+            QMenuBar {{
+                background-color: {color_menu};
+                color: {color_letra};
+                padding: 8px 20px;
+                border: none;
+            }}
+
+            QMenuBar::item {{
+                background-color: transparent;
+                padding: 8px 16px;
+                margin-right: 8px;
+            }}
+
+            QMenuBar::item:selected {{
+                background-color: {morado};
+                border-radius: 6px;
+            }}
+
+            QMenu {{
+                background-color: #20232A;
+                color: #EDEDED;
+                border: 1px solid #3A3D46;
+                padding: 5px;
+            }}
+
+            QMenu::item {{
+                padding: 8px 25px;
+            }}
+
+            QMenu::item:selected {{
+                background-color: {morado};
+                border-radius: 5px;
+            }}
+
+            QLabel#fotoPrincipal {{
+                background-color: {morado};
+                border-radius: 90px;
+                color: {texto};
+                font-size: 14px;
+            }}
+
+            QLabel#bienvenida {{
+                color: {morado_claro};
+            }}
+
+            QLabel#descripcionIzquierda {{
+                color: {texto};
+            }}
+
+            QLabel#iconoSettings {{
+                color: {morado_claro};
+                background-color: transparent;
+            }}
+
+            QLabel#tituloPrincipal {{
+                color: {texto};
+            }}
+
+            QLabel#descripcionCentral {{
+                color: {texto_secundario};
+            }}
+
+            QPushButton {{
+                background-color: {morado};
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 18px;
+                font-weight: bold;
+            }}
+
+            QPushButton:hover {{
+                background-color: #8259BC;
+            }}
+
+            QPushButton:pressed {{
+                background-color: #603A91;
+            }}
+            """
+        )
+
+
+# SETTINGS o AJUSTES
+
 class VentanaSettings(QDialog):
 
-    def __init__(self, parent=None):
+    def __init__(
+        self,
+        config,
+        actualizar_principal=None,
+        parent=None
+    ):
+
         super().__init__(parent)
 
-        self.setWindowTitle("Settings")
-        self.setMinimumSize(800, 550)
+        self.config = config.copy()
 
-        # 1. Cargar la configuración actual desde app.py
-        self.config_actual = AppConfig.cargar_configuracion()
-        self.ruta_foto_seleccionada = self.config_actual.get("foto_perfil", "")
+        self.actualizar_principal = (
+            actualizar_principal
+        )
+
+        self.color_menu = self.config.get(
+            "color_barra_menu",
+            "#20232A"
+        )
+
+        self.color_letra = self.config.get(
+            "color_letra",
+            "#EDEDED"
+        )
+
+        self.foto_seleccionada = self.config.get(
+            "foto_perfil",
+            ""
+        )
+
+        self.setWindowTitle(
+            "Settings"
+        )
+
+        self.setMinimumSize(
+            850,
+            560
+        )
 
         self.crear_interfaz()
         self.aplicar_estilo()
 
-        # 2. Rellenar los campos con los valores cargados
-        self.cargar_datos_en_interfaz()
-
-    # INTERFAZ
 
     def crear_interfaz(self):
 
-        layout_principal = QHBoxLayout()
-        self.setLayout(layout_principal)
+        layout = QHBoxLayout()
 
-        # 1. Panel Lateral Izquierdo
-        panel_lateral = QWidget()
-        panel_lateral.setFixedWidth(200)
+        layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
 
-        layout_lateral = QVBoxLayout()
-        panel_lateral.setLayout(layout_lateral)
+        layout.setSpacing(0)
 
-        titulo = QLabel("⚙  Settings")
-        titulo.setObjectName("tituloSettings")
 
-        layout_lateral.addWidget(titulo)
+        # SIDEBAR
+        sidebar = QFrame()
 
-        # Botones de navegación
-        self.btn_general = QPushButton("⚙   General")
-        self.btn_apariencia = QPushButton("◈   Apariencia")
-        self.btn_colores = QPushButton("●   Colores")
-        self.btn_cuenta = QPushButton("♙   Cuenta")
+        sidebar.setFixedWidth(200)
 
-        self.btn_general.setObjectName("botonActivo")
+        sidebar_layout = QVBoxLayout()
 
-        layout_lateral.addWidget(self.btn_general)
-        layout_lateral.addWidget(self.btn_apariencia)
-        layout_lateral.addWidget(self.btn_colores)
-        layout_lateral.addWidget(self.btn_cuenta)
+        sidebar_layout.setContentsMargins(
+            20,
+            30,
+            20,
+            20
+        )
 
-        layout_lateral.addStretch()
+        titulo = QLabel("SETTINGS")
 
-        layout_principal.addWidget(panel_lateral)
+        titulo.setFont(
+            QFont(
+                "Arial",
+                18,
+                QFont.Weight.Bold
+            )
+        )
 
-        # CONTENIDO
-        self.paginas = QStackedWidget()
+        sidebar_layout.addWidget(
+            titulo
+        )
 
-        self.crear_pagina_general()
-        self.crear_pagina_apariencia()
-        self.crear_pagina_colores()
-        self.crear_pagina_cuenta()
+        subtitulo = QLabel(
+            "Configuración"
+        )
 
-        layout_principal.addWidget(self.paginas)
+        sidebar_layout.addWidget(
+            subtitulo
+        )
 
-        # Conectar botones de navegación
+        sidebar_layout.addSpacing(30)
+
+        self.btn_general = self.crear_boton(
+            "General"
+        )
+
+        self.btn_apariencia = self.crear_boton(
+            "Apariencia"
+        )
+
+        self.btn_colores = self.crear_boton(
+            "Colores"
+        )
+
+        self.btn_cuenta = self.crear_boton(
+            "Cuenta"
+        )
+
+        sidebar_layout.addWidget(
+            self.btn_general
+        )
+
+        sidebar_layout.addWidget(
+            self.btn_apariencia
+        )
+
+        sidebar_layout.addWidget(
+            self.btn_colores
+        )
+
+        sidebar_layout.addWidget(
+            self.btn_cuenta
+        )
+
+        sidebar_layout.addStretch()
+
+        sidebar.setLayout(
+            sidebar_layout
+        )
+
+
+        # STACK
+
+        contenido = QWidget()
+
+        contenido_layout = QVBoxLayout()
+
+        contenido_layout.setContentsMargins(
+            35,
+            30,
+            35,
+            25
+        )
+
+        self.stack = QStackedWidget()
+
+        self.stack.addWidget(
+            self.crear_general()
+        )
+
+        self.stack.addWidget(
+            self.crear_apariencia()
+        )
+
+        self.stack.addWidget(
+            self.crear_colores()
+        )
+
+        self.stack.addWidget(
+            self.crear_cuenta()
+        )
+
+        contenido_layout.addWidget(
+            self.stack
+        )
+
+        # GUARDAR
+
+        botones = QHBoxLayout()
+
+        botones.addStretch()
+
+        cancelar = QPushButton(
+            "Cancelar"
+        )
+
+        cancelar.clicked.connect(
+            self.reject
+        )
+
+        guardar = QPushButton(
+            "Guardar cambios"
+        )
+
+        guardar.clicked.connect(
+            self.guardar
+        )
+
+        botones.addWidget(
+            cancelar
+        )
+
+        botones.addWidget(
+            guardar
+        )
+
+        contenido_layout.addLayout(
+            botones
+        )
+
+        contenido.setLayout(
+            contenido_layout
+        )
+
+        # ====================================================
+        # CONEXIONES
+
         self.btn_general.clicked.connect(
-            lambda: self.paginas.setCurrentIndex(0)
+            lambda: self.cambiar_pagina(0)
         )
 
         self.btn_apariencia.clicked.connect(
-            lambda: self.paginas.setCurrentIndex(1)
+            lambda: self.cambiar_pagina(1)
         )
 
         self.btn_colores.clicked.connect(
-            lambda: self.paginas.setCurrentIndex(2)
+            lambda: self.cambiar_pagina(2)
         )
 
         self.btn_cuenta.clicked.connect(
-            lambda: self.paginas.setCurrentIndex(3)
+            lambda: self.cambiar_pagina(3)
         )
 
-    # MÉTODO AUXILIAR PARA CREAR LA BOTONERA DE GUARDAR/CANCELAR EN CADA PÁGINA
-    def crear_botonera_inferior(self, layout_pagina):
-        botones = QHBoxLayout()
-        botones.addStretch()
+        layout.addWidget(sidebar)
+        layout.addWidget(contenido)
 
-        btn_cancelar = QPushButton("Cancelar")
-        btn_guardar = QPushButton("💾  Guardar cambios")
-        btn_guardar.setObjectName("botonGuardar")
+        self.setLayout(layout)
 
-        botones.addWidget(btn_cancelar)
-        botones.addWidget(btn_guardar)
+    # ========================================================
+    # BOTÓN SIDEBAR
 
-        layout_pagina.addLayout(botones)
+    def crear_boton(self, texto):
 
-        # Conectar eventos
-        btn_cancelar.clicked.connect(self.reject)
-        btn_guardar.clicked.connect(self.guardar_cambios)
+        boton = QPushButton(texto)
 
-    # PÁGINA GENERAL
+        boton.setMinimumHeight(42)
 
-    def crear_pagina_general(self):
+        boton.setCursor(
+            Qt.CursorShape.PointingHandCursor
+        )
+
+        return boton
+
+    # ========================================================
+    # CAMBIAR PÁGINA
+
+
+    def cambiar_pagina(self, indice):
+
+        self.stack.setCurrentIndex(
+            indice
+        )
+
+        botones = [
+            self.btn_general,
+            self.btn_apariencia,
+            self.btn_colores,
+            self.btn_cuenta
+        ]
+
+        for boton in botones:
+
+            boton.setProperty(
+                "activo",
+                False
+            )
+
+            boton.style().unpolish(
+                boton
+            )
+
+            boton.style().polish(
+                boton
+            )
+
+        boton = botones[indice]
+
+        boton.setProperty(
+            "activo",
+            True
+        )
+
+        boton.style().unpolish(
+            boton
+        )
+
+        boton.style().polish(
+            boton
+        )
+
+    # ========================================================
+    # GENERAL
+
+    def crear_general(self):
 
         pagina = QWidget()
+
         layout = QVBoxLayout()
-        pagina.setLayout(layout)
 
-        titulo = QLabel("Configuración General")
-        titulo.setObjectName("tituloPrincipal")
-
-        layout.addWidget(titulo)
-
-        descripcion = QLabel(
-            "Configura los datos principales de tu aplicación."
+        titulo = QLabel(
+            "General"
         )
 
-        descripcion.setObjectName("descripcion")
-
-        layout.addWidget(descripcion)
-
-        formulario = QFormLayout()
-
-        # Nombre de usuario
-        self.nombre_usuario = QLineEdit()
-        self.nombre_usuario.setPlaceholderText(
-            "Ingrese su nombre de usuario"
+        titulo.setFont(
+            QFont(
+                "Arial",
+                24,
+                QFont.Weight.Bold
+            )
         )
 
-        formulario.addRow(
-            "Nombre de usuario:",
-            self.nombre_usuario
+        layout.addWidget(
+            titulo
         )
 
-        # Idioma
-        self.idioma = QComboBox()
+        layout.addWidget(
+            QLabel(
+                "Configura los datos generales de la aplicación."
+            )
+        )
 
-        self.idioma.addItems([
-            "es-ES",
+        layout.addSpacing(20)
+
+        layout.addWidget(
+            QLabel(
+                "Nombre de usuario"
+            )
+        )
+
+        self.txt_nombre = QLineEdit()
+
+        self.txt_nombre.setText(
+            self.config.get(
+                "nombre_usuario",
+                ""
+            )
+        )
+
+        layout.addWidget(
+            self.txt_nombre
+        )
+
+        layout.addWidget(
+            QLabel(
+                "Idioma"
+            )
+        )
+
+        self.combo_idioma = QComboBox()
+
+        self.combo_idioma.addItem(
+            "Español (es-ES)",
+            "es-ES"
+        )
+
+        self.combo_idioma.addItem(
+            "English (en-US)",
             "en-US"
-        ])
-
-        formulario.addRow(
-            "Idioma:",
-            self.idioma
         )
 
-        # Tamaño
-        self.tamano_fuente = QSpinBox()
-
-        self.tamano_fuente.setMinimum(8)
-        self.tamano_fuente.setMaximum(40)
-        self.tamano_fuente.setValue(12)
-
-        formulario.addRow(
-            "Tamaño de fuente:",
-            self.tamano_fuente
+        posicion = self.combo_idioma.findData(
+            self.config.get(
+                "idioma",
+                "es-ES"
+            )
         )
 
-        layout.addLayout(formulario)
+        if posicion >= 0:
+            self.combo_idioma.setCurrentIndex(
+                posicion
+            )
+
+        layout.addWidget(
+            self.combo_idioma
+        )
+
+        layout.addWidget(
+            QLabel(
+                "Tamaño de fuente"
+            )
+        )
+
+        self.spin_fuente = QSpinBox()
+
+        self.spin_fuente.setRange(
+            8,
+            40
+        )
+
+        self.spin_fuente.setValue(
+            self.config.get(
+                "tamano_fuente",
+                12
+            )
+        )
+
+        layout.addWidget(
+            self.spin_fuente
+        )
+
         layout.addStretch()
 
-        # Añadir botones de Guardar/Cancelar
-        self.crear_botonera_inferior(layout)
-
-        self.paginas.addWidget(pagina)
-
-    # PÁGINA APARIENCIA
-
-    def crear_pagina_apariencia(self):
-
-        pagina = QWidget()
-        layout = QVBoxLayout()
         pagina.setLayout(layout)
 
-        titulo = QLabel("Apariencia")
-        titulo.setObjectName("tituloPrincipal")
+        return pagina
 
-        layout.addWidget(titulo)
+    # ========================================================
+    # APARIENCIA
 
-        descripcion = QLabel(
-            "Selecciona el tema que deseas utilizar."
+
+    def crear_apariencia(self):
+
+        pagina = QWidget()
+
+        layout = QVBoxLayout()
+
+        titulo = QLabel(
+            "Apariencia"
         )
 
-        descripcion.setObjectName("descripcion")
+        titulo.setFont(
+            QFont(
+                "Arial",
+                24,
+                QFont.Weight.Bold
+            )
+        )
 
-        layout.addWidget(descripcion)
+        layout.addWidget(
+            titulo
+        )
 
-        formulario = QFormLayout()
+        layout.addWidget(
+            QLabel(
+                "Selecciona el tema de la interfaz."
+            )
+        )
 
-        # Tema
-        self.tema = QComboBox()
+        layout.addSpacing(20)
 
-        self.tema.addItems([
-            "claro",
+        layout.addWidget(
+            QLabel(
+                "Tema de interfaz"
+            )
+        )
+
+        self.combo_tema = QComboBox()
+
+        self.combo_tema.addItem(
+            "Claro",
+            "claro"
+        )
+
+        self.combo_tema.addItem(
+            "Oscuro",
             "oscuro"
-        ])
-
-        formulario.addRow(
-            "Tema de interfaz:",
-            self.tema
         )
 
-        layout.addLayout(formulario)
+        posicion = self.combo_tema.findData(
+            self.config.get(
+                "tema_interfaz",
+                "oscuro"
+            )
+        )
 
-        # Vista previa
-        titulo_preview = QLabel("Vista previa")
-        titulo_preview.setObjectName("subtitulo")
+        if posicion >= 0:
+            self.combo_tema.setCurrentIndex(
+                posicion
+            )
 
-        layout.addWidget(titulo_preview)
+        layout.addWidget(
+            self.combo_tema
+        )
 
-        preview = QWidget()
-        preview.setObjectName("preview")
+        layout.addSpacing(20)
+
+        layout.addWidget(
+            QLabel(
+                "Vista previa"
+            )
+        )
+
+        self.preview = QFrame()
+
+        self.preview.setMinimumHeight(
+            180
+        )
 
         preview_layout = QVBoxLayout()
-        preview.setLayout(preview_layout)
 
-        texto_preview = QLabel(
-            "Así se verá tu interfaz"
+        texto = QLabel(
+            "Gestión de Configuración de Usuario"
         )
 
-        texto_preview.setAlignment(
+        texto.setAlignment(
             Qt.AlignmentFlag.AlignCenter
         )
 
-        preview_layout.addWidget(
-            texto_preview
+        texto.setFont(
+            QFont(
+                "Arial",
+                18,
+                QFont.Weight.Bold
+            )
         )
 
-        boton_preview = QPushButton(
-            "Botón de ejemplo"
+        preview_layout.addStretch()
+        preview_layout.addWidget(texto)
+        preview_layout.addStretch()
+
+        self.preview.setLayout(
+            preview_layout
         )
 
-        preview_layout.addWidget(
-            boton_preview
+        layout.addWidget(
+            self.preview
         )
 
-        layout.addWidget(preview)
         layout.addStretch()
 
-        # Añadir botones de Guardar/Cancelar
-        self.crear_botonera_inferior(layout)
-
-        self.paginas.addWidget(pagina)
-
-    # PÁGINA COLORES
-
-    def crear_pagina_colores(self):
-
-        pagina = QWidget()
-        layout = QVBoxLayout()
         pagina.setLayout(layout)
 
-        titulo = QLabel("Colores")
-        titulo.setObjectName("tituloPrincipal")
-
-        layout.addWidget(titulo)
-
-        descripcion = QLabel(
-            "Personaliza los colores utilizados por la aplicación."
+        self.combo_tema.currentIndexChanged.connect(
+            self.actualizar_preview
         )
 
-        descripcion.setObjectName("descripcion")
+        self.actualizar_preview()
 
-        layout.addWidget(descripcion)
+        return pagina
 
-        formulario = QFormLayout()
+    # ========================================================
+    # COLORES
 
-        # COLOR DEL MENÚ
+    def crear_colores(self):
 
-        self.color_menu = "#d9d9d9"
+        pagina = QWidget()
+
+        layout = QVBoxLayout()
+
+        titulo = QLabel(
+            "Colores"
+        )
+
+        titulo.setFont(
+            QFont(
+                "Arial",
+                24,
+                QFont.Weight.Bold
+            )
+        )
+
+        layout.addWidget(
+            titulo
+        )
+
+        layout.addWidget(
+            QLabel(
+                "Personaliza los colores de la interfaz."
+            )
+        )
+
+        layout.addSpacing(25)
+
+        # COLOR MENÚ
+
+        fila_menu = QHBoxLayout()
+
+        fila_menu.addWidget(
+            QLabel(
+                "Color de barra de menú"
+            )
+        )
+
+        fila_menu.addStretch()
 
         self.btn_color_menu = QPushButton(
             self.color_menu
+        )
+
+        self.btn_color_menu.setFixedWidth(
+            150
         )
 
         self.btn_color_menu.clicked.connect(
             self.seleccionar_color_menu
         )
 
-        formulario.addRow(
-            "Color de la barra de menú:",
+        fila_menu.addWidget(
             self.btn_color_menu
         )
 
-        # COLOR DE LETRA
+        layout.addLayout(
+            fila_menu
+        )
 
-        self.color_letra = "#000000"
+        # COLOR LETRA
+
+        fila_letra = QHBoxLayout()
+
+        fila_letra.addWidget(
+            QLabel(
+                "Color de letra"
+            )
+        )
+
+        fila_letra.addStretch()
 
         self.btn_color_letra = QPushButton(
             self.color_letra
+        )
+
+        self.btn_color_letra.setFixedWidth(
+            150
         )
 
         self.btn_color_letra.clicked.connect(
             self.seleccionar_color_letra
         )
 
-        formulario.addRow(
-            "Color de letra:",
+        fila_letra.addWidget(
             self.btn_color_letra
         )
 
-        layout.addLayout(formulario)
+        layout.addLayout(
+            fila_letra
+        )
+
         layout.addStretch()
 
-        # Añadir botones de Guardar/Cancelar
-        self.crear_botonera_inferior(layout)
-
-        self.paginas.addWidget(pagina)
-
-    # PÁGINA CUENTA
-
-    def crear_pagina_cuenta(self):
-
-        pagina = QWidget()
-        layout = QVBoxLayout()
         pagina.setLayout(layout)
 
-        titulo = QLabel("Cuenta")
-        titulo.setObjectName("tituloPrincipal")
+        return pagina
 
-        layout.addWidget(titulo)
+    # ========================================================
+    # CUENTA
 
-        descripcion = QLabel(
-            "Personaliza tu información de perfil."
+    def crear_cuenta(self):
+
+        pagina = QWidget()
+
+        layout = QVBoxLayout()
+
+        titulo = QLabel(
+            "Cuenta"
         )
 
-        descripcion.setObjectName("descripcion")
-
-        layout.addWidget(descripcion)
-
-        # FOTO
-        self.foto_perfil = QLabel("👤")
-
-        self.foto_perfil.setObjectName(
-            "fotoPerfil"
-        )
-
-        self.foto_perfil.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        self.foto_perfil.setFixedSize(
-            120,
-            120
+        titulo.setFont(
+            QFont(
+                "Arial",
+                24,
+                QFont.Weight.Bold
+            )
         )
 
         layout.addWidget(
-            self.foto_perfil,
+            titulo
+        )
+
+        layout.addWidget(
+            QLabel(
+                "Configura tu fotografía de perfil."
+            )
+        )
+
+        layout.addSpacing(20)
+
+        self.lbl_foto = QLabel(
+            "Sin fotografía"
+        )
+
+        self.lbl_foto.setFixedSize(
+            180,
+            180
+        )
+
+        self.lbl_foto.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        self.lbl_foto.setObjectName(
+            "fotoSettings"
+        )
+
+        layout.addWidget(
+            self.lbl_foto,
             alignment=Qt.AlignmentFlag.AlignCenter
         )
 
-        self.btn_cambiar_foto = QPushButton(
-            "Cambiar foto"
+        self.btn_foto = QPushButton(
+            "Seleccionar fotografía"
         )
 
-        self.btn_cambiar_foto.clicked.connect(
+        self.btn_foto.clicked.connect(
             self.seleccionar_foto
         )
 
         layout.addWidget(
-            self.btn_cambiar_foto,
+            self.btn_foto,
             alignment=Qt.AlignmentFlag.AlignCenter
         )
 
         layout.addStretch()
 
-        # Añadir botones de Guardar/Cancelar
-        self.crear_botonera_inferior(layout)
+        pagina.setLayout(layout)
 
-        self.paginas.addWidget(pagina)
+        self.actualizar_foto()
 
-    # Selector Color Menú
+        return pagina
+
+    # ========================================================
+    # FOTO
+
+    def seleccionar_foto(self):
+
+        archivo, _ = QFileDialog.getOpenFileName(
+            self,
+            "Seleccionar fotografía",
+            "",
+            "Imágenes (*.png *.jpg *.jpeg *.bmp)"
+        )
+
+        if archivo:
+
+            self.foto_seleccionada = archivo
+
+            self.actualizar_foto()
+
+    def actualizar_foto(self):
+
+        if (
+            self.foto_seleccionada
+            and os.path.exists(
+                self.foto_seleccionada
+            )
+        ):
+
+            pixmap = QPixmap(
+                self.foto_seleccionada
+            )
+
+            if not pixmap.isNull():
+
+                pixmap = pixmap.scaled(
+                    160,
+                    160,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+
+                self.lbl_foto.setPixmap(
+                    pixmap
+                )
+
+                return
+
+        self.lbl_foto.setText(
+            "Sin fotografía"
+        )
+
+    # ========================================================
+    # COLORES
 
     def seleccionar_color_menu(self):
 
-        color = QColorDialog.getColor(
-            QColor(self.color_menu),
-            self,
-            "Seleccionar color de menú"
-        )
+        color = QColorDialog.getColor()
 
         if color.isValid():
+
             self.color_menu = color.name()
 
             self.btn_color_menu.setText(
                 self.color_menu
             )
 
-    # Selector Color Letra
-
     def seleccionar_color_letra(self):
 
-        color = QColorDialog.getColor(
-            QColor(self.color_letra),
-            self,
-            "Seleccionar color de letra"
-        )
+        color = QColorDialog.getColor()
 
         if color.isValid():
+
             self.color_letra = color.name()
 
             self.btn_color_letra.setText(
                 self.color_letra
             )
 
-    # SELECTOR DE FOTO
+    # ========================================================
+    # PREVIEW
 
-    def seleccionar_foto(self):
+    def actualizar_preview(self):
 
-        ruta, _ = QFileDialog.getOpenFileName(
-            self,
-            "Seleccionar foto de perfil",
-            "",
-            "Imágenes (*.png *.jpg *.jpeg *.bmp)"
+        if self.combo_tema.currentData() == "oscuro":
+
+            self.preview.setStyleSheet(
+                """
+                QFrame {
+                    background-color: #15171C;
+                    border: 1px solid #3A3D46;
+                    border-radius: 12px;
+                }
+
+                QLabel {
+                    color: #EDEDED;
+                }
+                """
+            )
+
+        else:
+
+            self.preview.setStyleSheet(
+                """
+                QFrame {
+                    background-color: #F4F4F4;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 12px;
+                }
+
+                QLabel {
+                    color: #222222;
+                }
+                """
+            )
+
+    # ========================================================
+    # GUARDAR
+
+    def guardar(self):
+
+        nombre = self.txt_nombre.text().strip()
+
+        if not nombre:
+
+            QMessageBox.warning(
+                self,
+                "Dato requerido",
+                "Ingrese un nombre de usuario."
+            )
+
+            return
+
+        self.config["nombre_usuario"] = nombre
+
+        self.config["tema_interfaz"] = (
+            self.combo_tema.currentData()
         )
 
-        if ruta:
-            self.ruta_foto_seleccionada = ruta
-            pixmap = QPixmap(ruta)
+        self.config["idioma"] = (
+            self.combo_idioma.currentData()
+        )
 
-            pixmap = pixmap.scaled(
-                100,
-                100,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
+        self.config["tamano_fuente"] = (
+            self.spin_fuente.value()
+        )
 
-            self.foto_perfil.setPixmap(
-                pixmap
-            )
+        self.config["color_barra_menu"] = (
+            self.color_menu
+        )
 
-    # CARGAR DATOS DESDE ARCHIVO A UI
-    def cargar_datos_en_interfaz(self):
-        # Nombre usuario
-        self.nombre_usuario.setText(self.config_actual.get("nombre_usuario", ""))
+        self.config["color_letra"] = (
+            self.color_letra
+        )
 
-        # Idioma
-        idioma = self.config_actual.get("idioma", "es-ES")
-        idx_idioma = self.idioma.findText(idioma)
-        if idx_idioma >= 0:
-            self.idioma.setCurrentIndex(idx_idioma)
+        self.config["foto_perfil"] = (
+            self.foto_seleccionada
+        )
 
-        # Tamaño fuente
-        self.tamano_fuente.setValue(self.config_actual.get("tamano_fuente", 12))
+        exito, mensaje = guardar_configuracion(
+            self.config
+        )
 
-        # Tema
-        tema = self.config_actual.get("tema_interfaz", "claro")
-        idx_tema = self.tema.findText(tema)
-        if idx_tema >= 0:
-            self.tema.setCurrentIndex(idx_tema)
-
-        # Colores
-        self.color_menu = self.config_actual.get("color_barra_menu", "#d9d9d9")
-        self.btn_color_menu.setText(self.color_menu)
-
-        self.color_letra = self.config_actual.get("color_letra", "#000000")
-        self.btn_color_letra.setText(self.color_letra)
-
-        # Foto perfil
-        ruta = self.config_actual.get("foto_perfil", "")
-        if ruta:
-            pixmap = QPixmap(ruta)
-            if not pixmap.isNull():
-                pixmap = pixmap.scaled(
-                    100, 100,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                )
-                self.foto_perfil.setPixmap(pixmap)
-
-    # GUARDAR DATOS DESDE UI A ARCHIVO
-    def guardar_cambios(self):
-        self.config_actual["nombre_usuario"] = self.nombre_usuario.text()
-        self.config_actual["idioma"] = self.idioma.currentText()
-        self.config_actual["tamano_fuente"] = self.tamano_fuente.value()
-        self.config_actual["tema_interfaz"] = self.tema.currentText()
-        self.config_actual["color_barra_menu"] = self.color_menu
-        self.config_actual["color_letra"] = self.color_letra
-        self.config_actual["foto_perfil"] = self.ruta_foto_seleccionada
-
-        exito = AppConfig.guardar_configuracion(self.config_actual)
         if exito:
+
+            QMessageBox.information(
+                self,
+                "Configuración",
+                mensaje if mensaje else
+                "¡Configuración guardada con éxito!"
+            )
+
+            if self.actualizar_principal:
+
+                self.actualizar_principal(
+                    self.config
+                )
+
             self.accept()
 
-    # ESTILO
+        else:
+
+            QMessageBox.critical(
+                self,
+                "Error",
+                mensaje if mensaje else
+                "No se pudo guardar la configuración."
+            )
+
+    # ========================================================
+    # ESTILO SETTINGS
 
     def aplicar_estilo(self):
 
-        self.setStyleSheet("""
-
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #15171C;
             }
 
             QLabel {
                 color: #EDEDED;
-                font-size: 14px;
-            }
-
-            #tituloSettings {
-                font-size: 21px;
-                font-weight: bold;
-                padding: 12px;
-            }
-
-            #tituloPrincipal {
-                font-size: 27px;
-                font-weight: bold;
-                padding-top: 10px;
-                padding-bottom: 5px;
-            }
-
-            #subtitulo {
-                font-size: 18px;
-                font-weight: bold;
-                margin-top: 15px;
-            }
-
-            #descripcion {
-                color: #A5A5A5;
-                font-size: 14px;
-                padding-bottom: 20px;
-            }
-
-            QPushButton {
-                background-color: #20232A;
-                color: #EDEDED;
-                border: 1px solid #3A3D46;
-                border-radius: 7px;
-                padding: 10px;
-                font-size: 14px;
-            }
-
-            QPushButton:hover {
-                background-color: #343740;
-            }
-
-            #botonActivo {
-                background-color: #7048A8;
-                border: none;
-                font-weight: bold;
-            }
-
-            #botonGuardar {
-                background-color: #7048A8;
-                border: none;
-                color: white;
-                font-weight: bold;
-                padding: 12px 20px;
-            }
-
-            #botonGuardar:hover {
-                background-color: #8359BB;
             }
 
             QLineEdit,
@@ -576,396 +1469,48 @@ class VentanaSettings(QDialog):
             QSpinBox {
                 background-color: #20232A;
                 color: #EDEDED;
-                border: 1px solid #444750;
-                border-radius: 5px;
+                border: 1px solid #3A3D46;
+                border-radius: 8px;
                 padding: 9px;
             }
 
-            QComboBox QAbstractItemView {
-                background-color: #20232A;
-                color: #EDEDED;
-                selection-background-color: #7048A8;
-            }
-
-            #preview {
-                background-color: #20232A;
-                border: 1px solid #3A3D46;
-                border-radius: 10px;
-                padding: 20px;
-            }
-
-            #fotoPerfil {
-                background-color: #7048A8;
-                border-radius: 60px;
-                font-size: 55px;
-            }
-        """)
-
-
-# VENTANA PRINCIPAL
-
-class VentanaPrincipal(QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle(
-            "Gestión de Configuración de Usuario"
-        )
-
-        self.setMinimumSize(
-            1000,
-            650
-        )
-
-        self.crear_menu()
-        self.crear_interfaz()
-        self.aplicar_estilo()
-
-    # MENÚ SUPERIOR
-    def crear_menu(self):
-        barra = self.menuBar()
-
-        # ----------------------------------------------------
-        # ARCHIVO
-        # ----------------------------------------------------
-
-        archivo = barra.addMenu("Archivo")
-
-        nuevo = QAction("Nuevo", self)
-        abrir = QAction("Abrir", self)
-        guardar = QAction("Guardar", self)
-        archivo.addAction(nuevo)
-        archivo.addAction(abrir)
-        archivo.addAction(guardar)
-
-        archivo.addSeparator()
-
-        cerrar = QAction("Cerrar", self)
-        salir = QAction("Salir", self)
-
-        archivo.addAction(cerrar)
-        archivo.addAction(salir)
-
-        salir.triggered.connect(
-            self.close
-        )
-
-        # EDICIÓN
-        edicion = barra.addMenu("Edición")
-
-        edicion.addAction(
-            QAction("Deshacer", self)
-        )
-
-        edicion.addAction(
-            QAction("Rehacer", self)
-        )
-
-        # ----------------------------------------------------
-        # VER
-        # ----------------------------------------------------
-
-        ver = barra.addMenu("Ver")
-
-        ver.addAction(
-            QAction("Pantalla principal", self)
-        )
-
-        ver.addAction(
-            QAction("Vista de configuración", self)
-        )
-
-        # AJUSTES
-        settings = barra.addMenu("Settings")
-
-        abrir_settings = QAction(
-            "Abrir Settings",
-            self
-        )
-
-        settings.addAction(
-            abrir_settings
-        )
-
-        abrir_settings.triggered.connect(
-            self.abrir_settings
-        )
-
-        # ----------------------------------------------------
-        # AYUDA
-        # ----------------------------------------------------
-
-        ayuda = barra.addMenu("Ayuda")
-
-        ayuda.addAction(
-            QAction("Acerca de", self)
-        )
-
-    # INTERFAZ PRINCIPAL
-
-    def crear_interfaz(self):
-        central = QWidget()
-
-        layout = QHBoxLayout()
-        central.setLayout(layout)
-
-        # ----------------------------------------------------
-        # PANEL IZQUIERDO
-        # ----------------------------------------------------
-
-        panel_izquierdo = QWidget()
-        panel_izquierdo.setFixedWidth(270)
-
-        layout_izquierdo = QVBoxLayout()
-        panel_izquierdo.setLayout(
-            layout_izquierdo
-        )
-
-        # Foto
-        foto = QLabel("👤")
-
-        foto.setObjectName(
-            "fotoPrincipal"
-        )
-
-        foto.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        foto.setFixedSize(
-            120,
-            120
-        )
-
-        layout_izquierdo.addWidget(
-            foto,
-            alignment=Qt.AlignmentFlag.AlignCenter
-        )
-
-        # Bienvenida
-        bienvenida = QLabel(
-            "¡Bienvenido!"
-        )
-
-        bienvenida.setObjectName(
-            "bienvenida"
-        )
-
-        bienvenida.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        layout_izquierdo.addWidget(
-            bienvenida
-        )
-
-        descripcion = QLabel(
-            "Gestiona tu configuración\ndesde Settings."
-        )
-
-        descripcion.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        descripcion.setObjectName(
-            "descripcion"
-        )
-
-        layout_izquierdo.addWidget(
-            descripcion
-        )
-
-        layout_izquierdo.addStretch()
-
-        layout.addWidget(
-            panel_izquierdo
-        )
-
-        # ----------------------------------------------------
-        # PANEL CENTRAL
-        # ----------------------------------------------------
-        panel_central = QWidget()
-
-        layout_central = QVBoxLayout()
-        panel_central.setLayout(
-            layout_central
-        )
-
-        layout_central.addStretch()
-
-        # Icono
-        icono = QLabel("⚙")
-
-        icono.setObjectName(
-            "icono"
-        )
-
-        icono.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        layout_central.addWidget(
-            icono
-        )
-
-        # Título
-        titulo = QLabel(
-            "Gestión de Configuración de Usuario"
-        )
-
-        titulo.setObjectName(
-            "titulo"
-        )
-
-        titulo.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        layout_central.addWidget(
-            titulo
-        )
-
-        # Texto
-        texto = QLabel(
-            "Personaliza tu experiencia y guarda tu\n"
-            "configuración de forma segura."
-        )
-
-        texto.setObjectName(
-            "texto"
-        )
-
-        texto.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
-
-        layout_central.addWidget(
-            texto
-        )
-
-        # Botón
-        boton_settings = QPushButton(
-            "⚙   Abrir Settings"
-        )
-
-        boton_settings.setObjectName(
-            "botonPrincipal"
-        )
-
-        boton_settings.clicked.connect(
-            self.abrir_settings
-        )
-
-        layout_central.addWidget(
-            boton_settings,
-            alignment=Qt.AlignmentFlag.AlignCenter
-        )
-
-        layout_central.addStretch()
-
-        layout.addWidget(
-            panel_central
-        )
-
-        self.setCentralWidget(
-            central
-        )
-
-
-    # SETTINGS o AJUSTES
-    def abrir_settings(self):
-        ventana = VentanaSettings(self)
-
-        ventana.exec()
-
-
-    # ESTILO
-    def aplicar_estilo(self):
-        self.setStyleSheet("""
-
-            QMainWindow {
-                background-color: #15171C;
-            }
-
-            QMenuBar {
-                background-color: #2B2D31;
-                color: #EDEDED;
-                padding: 6px;
-                font-size: 14px;
-            }
-
-            QMenuBar::item:selected {
-                background-color: #7048A8;
-            }
-
-            QMenu {
-                background-color: #20232A;
-                color: #EDEDED;
-                border: 1px solid #3A3D46;
-            }
-
-            QMenu::item:selected {
-                background-color: #7048A8;
-            }
-
-            QLabel {
-                color: #EDEDED;
-            }
-
-            #bienvenida {
-                color: #A978E0;
-                font-size: 24px;
-                font-weight: bold;
-            }
-
-            #fotoPrincipal {
-                background-color: #7048A8;
-                border-radius: 60px;
-                font-size: 55px;
-            }
-
-            #icono {
-                color: #A978E0;
-                font-size: 90px;
-            }
-
-            #titulo {
-                font-size: 29px;
-                font-weight: bold;
-            }
-
-            #texto {
-                color: #AAAAAA;
-                font-size: 15px;
-            }
-
-            #botonPrincipal {
+            QPushButton {
                 background-color: #7048A8;
                 color: white;
                 border: none;
                 border-radius: 8px;
-                padding: 13px 25px;
-                font-size: 15px;
-                font-weight: bold;
+                padding: 10px 16px;
             }
 
-            #botonPrincipal:hover {
-                background-color: #8359BB;
+            QPushButton:hover {
+                background-color: #8259BC;
             }
-        """)
 
-def main():
+            QPushButton[activo="true"] {
+                background-color: #7048A8;
+            }
+
+            QPushButton[activo="false"] {
+                background-color: #20232A;
+            }
+
+            QLabel#fotoSettings {
+                background-color: #20232A;
+                border: 2px solid #7048A8;
+                border-radius: 90px;
+            }
+            """
+        )
+
+        self.cambiar_pagina(0)
+
+
+if __name__ == "__main__":
+
     app = QApplication(sys.argv)
 
     ventana = VentanaPrincipal()
 
     ventana.show()
 
-    sys.exit(
-        app.exec()
-    )
-
-
-if __name__ == "__main__":
-    main()
+    sys.exit(app.exec())
