@@ -1,13 +1,10 @@
 import os
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QPushButton
-from PyQt6.QtWidgets import QDialog, QLineEdit, QComboBox, QSpinBox
-from PyQt6.QtWidgets import QColorDialog, QFileDialog, QMessageBox
-from PyQt6.QtGui import QAction, QFont
+from PyQt6.QtWidgets import QDialog, QLineEdit, QComboBox, QSpinBox, QFormLayout
+from PyQt6.QtWidgets import QColorDialog, QFileDialog, QMessageBox, QStackedWidget
+from PyQt6.QtGui import QAction, QFont, QColor, QPixmap
 from PyQt6.QtCore import Qt
-
-from PyQt6.QtWidgets import QLabel,QPushButton,QStackedWidget
-from PyQt6.QtGui import QPixmap
 
 from app import AppConfig
 
@@ -101,14 +98,14 @@ class VentanaPrincipal(QMainWindow):
         # PANEL IZQUIERDO
         panel_izquierdo = QWidget()
 
-        panel_izquierdo.setFixedWidth(310)
+        panel_izquierdo.setFixedWidth(270)
 
         layout_izquierdo = QVBoxLayout()
 
         layout_izquierdo.setContentsMargins(
-            20,
             0,
-            20,
+            0,
+            0,
             0
         )
 
@@ -116,13 +113,12 @@ class VentanaPrincipal(QMainWindow):
             Qt.AlignmentFlag.AlignTop
         )
 
-
         # FOTO
-        self.foto_principal = QLabel()
+        self.foto_principal = QLabel("👤")
 
         self.foto_principal.setFixedSize(
-            180,
-            180
+            120,
+            120
         )
 
         self.foto_principal.setAlignment(
@@ -149,14 +145,6 @@ class VentanaPrincipal(QMainWindow):
             Qt.AlignmentFlag.AlignCenter
         )
 
-        self.lbl_bienvenida.setFont(
-            QFont(
-                "Arial",
-                28,
-                QFont.Weight.Bold
-            )
-        )
-
         self.lbl_bienvenida.setObjectName(
             "bienvenida"
         )
@@ -164,7 +152,6 @@ class VentanaPrincipal(QMainWindow):
         layout_izquierdo.addWidget(
             self.lbl_bienvenida
         )
-
 
         # DESCRIPCIÓN
         descripcion = QLabel(
@@ -174,13 +161,6 @@ class VentanaPrincipal(QMainWindow):
 
         descripcion.setAlignment(
             Qt.AlignmentFlag.AlignCenter
-        )
-
-        descripcion.setFont(
-            QFont(
-                "Arial",
-                13
-            )
         )
 
         descripcion.setObjectName(
@@ -219,13 +199,6 @@ class VentanaPrincipal(QMainWindow):
             Qt.AlignmentFlag.AlignCenter
         )
 
-        self.icono_settings.setFont(
-            QFont(
-                "Arial",
-                80
-            )
-        )
-
         self.icono_settings.setObjectName(
             "iconoSettings"
         )
@@ -245,14 +218,6 @@ class VentanaPrincipal(QMainWindow):
 
         titulo.setAlignment(
             Qt.AlignmentFlag.AlignCenter
-        )
-
-        titulo.setFont(
-            QFont(
-                "Arial",
-                28,
-                QFont.Weight.Bold
-            )
         )
 
         titulo.setObjectName(
@@ -277,13 +242,6 @@ class VentanaPrincipal(QMainWindow):
             Qt.AlignmentFlag.AlignCenter
         )
 
-        descripcion_central.setFont(
-            QFont(
-                "Arial",
-                14
-            )
-        )
-
         descripcion_central.setObjectName(
             "descripcionCentral"
         )
@@ -302,9 +260,8 @@ class VentanaPrincipal(QMainWindow):
             "⚙   Abrir Settings"
         )
 
-        self.btn_settings.setFixedSize(
-            275,
-            65
+        self.btn_settings.setObjectName(
+            "botonPrincipal"
         )
 
         self.btn_settings.setCursor(
@@ -372,7 +329,7 @@ class VentanaPrincipal(QMainWindow):
 
         color_menu = self.config.get(
             "color_barra_menu",
-            "#20232A"
+            "#2B2D31"
         )
 
         color_letra = self.config.get(
@@ -395,31 +352,16 @@ class VentanaPrincipal(QMainWindow):
             ""
         )
 
-        # TEMA OSCURO
-        if tema == "oscuro":
-
-            fondo = "#15171C"
-            texto = "#EDEDED"
-            texto_secundario = "#AAAAAA"
-            morado = "#7048A8"
-            morado_claro = "#A978E0"
-
-        # TEMA CLARO
-        else:
-
-            fondo = "#F4F4F5"
-            texto = "#222222"
-            texto_secundario = "#666666"
-            morado = "#7048A8"
-            morado_claro = "#7048A8"
-
         # NOMBRE
 
-        self.lbl_bienvenida.setText(
-            f"¡Bienvenido, {nombre}!"
-        )
-
-
+        if nombre:
+            self.lbl_bienvenida.setText(
+                f"¡Bienvenido, {nombre}!"
+            )
+        else:
+            self.lbl_bienvenida.setText(
+                "¡Bienvenido!"
+            )
 
         # FOTO
         if foto and os.path.exists(foto):
@@ -429,8 +371,8 @@ class VentanaPrincipal(QMainWindow):
             if not pixmap.isNull():
 
                 pixmap = pixmap.scaled(
-                    170,
-                    170,
+                    120,
+                    120,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
@@ -439,108 +381,101 @@ class VentanaPrincipal(QMainWindow):
                     pixmap
                 )
 
+                self.foto_principal.setText("")
+
             else:
 
                 self.foto_principal.setText(
-                    "Sin fotografía"
+                    "👤"
                 )
 
         else:
 
-            self.foto_principal.setText(
-                "Sin fotografía"
-            )
+            self.foto_principal.setPixmap(QPixmap())
+            self.foto_principal.setText("👤")
 
         # ESTILO
         self.setStyleSheet(
             f"""
             QMainWindow {{
-                background-color: {fondo};
+                background-color: #15171C;
             }}
 
             QWidget {{
-                background-color: {fondo};
-                color: {texto};
                 font-size: {tamano}px;
             }}
 
             QMenuBar {{
                 background-color: {color_menu};
                 color: {color_letra};
-                padding: 8px 20px;
-                border: none;
-            }}
-
-            QMenuBar::item {{
-                background-color: transparent;
-                padding: 8px 16px;
-                margin-right: 8px;
+                padding: 6px;
+                font-size: 14px;
             }}
 
             QMenuBar::item:selected {{
-                background-color: {morado};
-                border-radius: 6px;
+                background-color: #7048A8;
             }}
 
             QMenu {{
                 background-color: #20232A;
-                color: #EDEDED;
+                color: {color_letra};
                 border: 1px solid #3A3D46;
-                padding: 5px;
-            }}
-
-            QMenu::item {{
-                padding: 8px 25px;
             }}
 
             QMenu::item:selected {{
-                background-color: {morado};
-                border-radius: 5px;
+                background-color: #7048A8;
             }}
 
-            QLabel#fotoPrincipal {{
-                background-color: {morado};
-                border-radius: 90px;
-                color: {texto};
-                font-size: 14px;
+            QLabel {{
+                color: {color_letra};
             }}
 
-            QLabel#bienvenida {{
-                color: {morado_claro};
-            }}
-
-            QLabel#descripcionIzquierda {{
-                color: {texto};
-            }}
-
-            QLabel#iconoSettings {{
-                color: {morado_claro};
-                background-color: transparent;
-            }}
-
-            QLabel#tituloPrincipal {{
-                color: {texto};
-            }}
-
-            QLabel#descripcionCentral {{
-                color: {texto_secundario};
-            }}
-
-            QPushButton {{
-                background-color: {morado};
-                color: white;
-                border: none;
-                border-radius: 12px;
-                font-size: 18px;
+            #bienvenida {{
+                color: #A978E0;
+                font-size: 24px;
                 font-weight: bold;
             }}
 
-            QPushButton:hover {{
-                background-color: #8259BC;
+            #fotoPrincipal {{
+                background-color: #7048A8;
+                border-radius: 60px;
+                font-size: 55px;
+                color: white;
             }}
 
-            QPushButton:pressed {{
-                background-color: #603A91;
+            #descripcionIzquierda {{
+                color: #A5A5A5;
+                font-size: 13px;
+            }}
+
+            #iconoSettings {{
+                color: #A978E0;
+                font-size: 90px;
+            }}
+
+            #tituloPrincipal {{
+                font-size: 29px;
+                font-weight: bold;
+                color: {color_letra};
+            }}
+
+            #descripcionCentral {{
+                color: #AAAAAA;
+                font-size: 15px;
+            }}
+
+            #botonPrincipal {{
+                background-color: #7048A8;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 13px 25px;
+                font-size: 15px;
+                font-weight: bold;
+            }}
+
+            #botonPrincipal:hover {{
+                background-color: #8359BB;
             }}
             """
         )
@@ -567,12 +502,12 @@ class VentanaSettings(QDialog):
 
         self.color_menu = self.config.get(
             "color_barra_menu",
-            "#20232A"
+            "#d9d9d9"
         )
 
         self.color_letra = self.config.get(
             "color_letra",
-            "#EDEDED"
+            "#000000"
         )
 
         self.foto_seleccionada = self.config.get(
@@ -585,13 +520,12 @@ class VentanaSettings(QDialog):
         )
 
         self.setMinimumSize(
-            850,
-            560
+            800,
+            550
         )
 
         self.crear_interfaz()
         self.aplicar_estilo()
-
 
     def crear_interfaz(self):
 
@@ -606,96 +540,48 @@ class VentanaSettings(QDialog):
 
         layout.setSpacing(0)
 
-
         # SIDEBAR
-        sidebar = QFrame()
+        panel_lateral = QWidget()
 
-        sidebar.setFixedWidth(200)
+        panel_lateral.setFixedWidth(200)
 
-        sidebar_layout = QVBoxLayout()
+        layout_lateral = QVBoxLayout()
+        panel_lateral.setLayout(layout_lateral)
 
-        sidebar_layout.setContentsMargins(
-            20,
-            30,
-            20,
-            20
-        )
+        titulo = QLabel("⚙  Settings")
+        titulo.setObjectName("tituloSettings")
+        layout_lateral.addWidget(titulo)
 
-        titulo = QLabel("SETTINGS")
+        self.btn_general = QPushButton("⚙   General")
+        self.btn_apariencia = QPushButton("◈   Apariencia")
+        self.btn_colores = QPushButton("●   Colores")
+        self.btn_cuenta = QPushButton("♙   Cuenta")
 
-        titulo.setFont(
-            QFont(
-                "Arial",
-                18,
-                QFont.Weight.Bold
-            )
-        )
-
-        sidebar_layout.addWidget(
-            titulo
-        )
-
-        subtitulo = QLabel(
-            "Configuración"
-        )
-
-        sidebar_layout.addWidget(
-            subtitulo
-        )
-
-        sidebar_layout.addSpacing(30)
-
-        self.btn_general = self.crear_boton(
-            "General"
-        )
-
-        self.btn_apariencia = self.crear_boton(
-            "Apariencia"
-        )
-
-        self.btn_colores = self.crear_boton(
-            "Colores"
-        )
-
-        self.btn_cuenta = self.crear_boton(
-            "Cuenta"
-        )
-
-        sidebar_layout.addWidget(
+        layout_lateral.addWidget(
             self.btn_general
         )
 
-        sidebar_layout.addWidget(
+        layout_lateral.addWidget(
             self.btn_apariencia
         )
 
-        sidebar_layout.addWidget(
+        layout_lateral.addWidget(
             self.btn_colores
         )
 
-        sidebar_layout.addWidget(
+        layout_lateral.addWidget(
             self.btn_cuenta
         )
 
-        sidebar_layout.addStretch()
-
-        sidebar.setLayout(
-            sidebar_layout
-        )
-
+        layout_lateral.addStretch()
+        layout.addWidget(panel_lateral)
 
         # STACK
 
         contenido = QWidget()
 
         contenido_layout = QVBoxLayout()
-
-        contenido_layout.setContentsMargins(
-            35,
-            30,
-            35,
-            25
-        )
+        contenido.setLayout(contenido_layout)
 
         self.stack = QStackedWidget()
 
@@ -719,43 +605,7 @@ class VentanaSettings(QDialog):
             self.stack
         )
 
-        # GUARDAR
-
-        botones = QHBoxLayout()
-
-        botones.addStretch()
-
-        cancelar = QPushButton(
-            "Cancelar"
-        )
-
-        cancelar.clicked.connect(
-            self.reject
-        )
-
-        guardar = QPushButton(
-            "Guardar cambios"
-        )
-
-        guardar.clicked.connect(
-            self.guardar
-        )
-
-        botones.addWidget(
-            cancelar
-        )
-
-        botones.addWidget(
-            guardar
-        )
-
-        contenido_layout.addLayout(
-            botones
-        )
-
-        contenido.setLayout(
-            contenido_layout
-        )
+        layout.addWidget(contenido)
 
         # ====================================================
         # CONEXIONES
@@ -776,29 +626,45 @@ class VentanaSettings(QDialog):
             lambda: self.cambiar_pagina(3)
         )
 
-        layout.addWidget(sidebar)
-        layout.addWidget(contenido)
-
         self.setLayout(layout)
 
-    # ========================================================
-    # BOTÓN SIDEBAR
+    # BOTONERA INFERIOR REUTILIZABLE
+    def crear_botonera_inferior(self, layout_pagina):
+        botones = QHBoxLayout()
+        botones.addStretch()
 
-    def crear_boton(self, texto):
-
-        boton = QPushButton(texto)
-
-        boton.setMinimumHeight(42)
-
-        boton.setCursor(
-            Qt.CursorShape.PointingHandCursor
+        cancelar = QPushButton(
+            "Cancelar"
         )
 
-        return boton
+        cancelar.clicked.connect(
+            self.reject
+        )
+
+        guardar = QPushButton(
+            "💾  Guardar cambios"
+        )
+
+        guardar.setObjectName("botonGuardar")
+
+        guardar.clicked.connect(
+            self.guardar
+        )
+
+        botones.addWidget(
+            cancelar
+        )
+
+        botones.addWidget(
+            guardar
+        )
+
+        layout_pagina.addLayout(
+            botones
+        )
 
     # ========================================================
     # CAMBIAR PÁGINA
-
 
     def cambiar_pagina(self, indice):
 
@@ -813,12 +679,12 @@ class VentanaSettings(QDialog):
             self.btn_cuenta
         ]
 
-        for boton in botones:
+        for i, boton in enumerate(botones):
 
-            boton.setProperty(
-                "activo",
-                False
-            )
+            if i == indice:
+                boton.setObjectName("botonActivo")
+            else:
+                boton.setObjectName("")
 
             boton.style().unpolish(
                 boton
@@ -828,21 +694,6 @@ class VentanaSettings(QDialog):
                 boton
             )
 
-        boton = botones[indice]
-
-        boton.setProperty(
-            "activo",
-            True
-        )
-
-        boton.style().unpolish(
-            boton
-        )
-
-        boton.style().polish(
-            boton
-        )
-
     # ========================================================
     # GENERAL
 
@@ -851,38 +702,35 @@ class VentanaSettings(QDialog):
         pagina = QWidget()
 
         layout = QVBoxLayout()
+        pagina.setLayout(layout)
 
         titulo = QLabel(
-            "General"
+            "Configuración General"
         )
 
-        titulo.setFont(
-            QFont(
-                "Arial",
-                24,
-                QFont.Weight.Bold
-            )
-        )
+        titulo.setObjectName("tituloPrincipalSettings")
 
         layout.addWidget(
             titulo
         )
 
-        layout.addWidget(
-            QLabel(
-                "Configura los datos generales de la aplicación."
-            )
+        descripcion = QLabel(
+            "Configura los datos principales de tu aplicación."
         )
 
-        layout.addSpacing(20)
+        descripcion.setObjectName("descripcionSettings")
 
         layout.addWidget(
-            QLabel(
-                "Nombre de usuario"
-            )
+            descripcion
         )
+
+        formulario = QFormLayout()
 
         self.txt_nombre = QLineEdit()
+
+        self.txt_nombre.setPlaceholderText(
+            "Ingrese su nombre de usuario"
+        )
 
         self.txt_nombre.setText(
             self.config.get(
@@ -891,14 +739,9 @@ class VentanaSettings(QDialog):
             )
         )
 
-        layout.addWidget(
+        formulario.addRow(
+            "Nombre de usuario:",
             self.txt_nombre
-        )
-
-        layout.addWidget(
-            QLabel(
-                "Idioma"
-            )
         )
 
         self.combo_idioma = QComboBox()
@@ -925,20 +768,18 @@ class VentanaSettings(QDialog):
                 posicion
             )
 
-        layout.addWidget(
+        formulario.addRow(
+            "Idioma:",
             self.combo_idioma
-        )
-
-        layout.addWidget(
-            QLabel(
-                "Tamaño de fuente"
-            )
         )
 
         self.spin_fuente = QSpinBox()
 
-        self.spin_fuente.setRange(
-            8,
+        self.spin_fuente.setMinimum(
+            8
+        )
+
+        self.spin_fuente.setMaximum(
             40
         )
 
@@ -949,55 +790,50 @@ class VentanaSettings(QDialog):
             )
         )
 
-        layout.addWidget(
+        formulario.addRow(
+            "Tamaño de fuente:",
             self.spin_fuente
         )
 
+        layout.addLayout(formulario)
+
         layout.addStretch()
 
-        pagina.setLayout(layout)
+        self.crear_botonera_inferior(layout)
 
         return pagina
 
     # ========================================================
     # APARIENCIA
 
-
     def crear_apariencia(self):
 
         pagina = QWidget()
 
         layout = QVBoxLayout()
+        pagina.setLayout(layout)
 
         titulo = QLabel(
             "Apariencia"
         )
 
-        titulo.setFont(
-            QFont(
-                "Arial",
-                24,
-                QFont.Weight.Bold
-            )
-        )
+        titulo.setObjectName("tituloPrincipalSettings")
 
         layout.addWidget(
             titulo
         )
 
-        layout.addWidget(
-            QLabel(
-                "Selecciona el tema de la interfaz."
-            )
+        descripcion = QLabel(
+            "Selecciona el tema que deseas utilizar."
         )
 
-        layout.addSpacing(20)
+        descripcion.setObjectName("descripcionSettings")
 
         layout.addWidget(
-            QLabel(
-                "Tema de interfaz"
-            )
+            descripcion
         )
+
+        formulario = QFormLayout()
 
         self.combo_tema = QComboBox()
 
@@ -1023,48 +859,51 @@ class VentanaSettings(QDialog):
                 posicion
             )
 
-        layout.addWidget(
+        formulario.addRow(
+            "Tema de interfaz:",
             self.combo_tema
         )
 
-        layout.addSpacing(20)
+        layout.addLayout(formulario)
+
+        titulo_preview = QLabel(
+            "Vista previa"
+        )
+
+        titulo_preview.setObjectName("subtitulo")
 
         layout.addWidget(
-            QLabel(
-                "Vista previa"
-            )
+            titulo_preview
         )
 
-        self.preview = QFrame()
+        self.preview = QWidget()
 
-        self.preview.setMinimumHeight(
-            180
-        )
+        self.preview.setObjectName("preview")
 
         preview_layout = QVBoxLayout()
 
-        texto = QLabel(
-            "Gestión de Configuración de Usuario"
+        self.preview.setLayout(
+            preview_layout
         )
 
-        texto.setAlignment(
+        texto_preview = QLabel(
+            "Así se verá tu interfaz"
+        )
+
+        texto_preview.setAlignment(
             Qt.AlignmentFlag.AlignCenter
         )
 
-        texto.setFont(
-            QFont(
-                "Arial",
-                18,
-                QFont.Weight.Bold
-            )
+        preview_layout.addWidget(
+            texto_preview
         )
 
-        preview_layout.addStretch()
-        preview_layout.addWidget(texto)
-        preview_layout.addStretch()
+        boton_preview = QPushButton(
+            "Botón de ejemplo"
+        )
 
-        self.preview.setLayout(
-            preview_layout
+        preview_layout.addWidget(
+            boton_preview
         )
 
         layout.addWidget(
@@ -1073,13 +912,7 @@ class VentanaSettings(QDialog):
 
         layout.addStretch()
 
-        pagina.setLayout(layout)
-
-        self.combo_tema.currentIndexChanged.connect(
-            self.actualizar_preview
-        )
-
-        self.actualizar_preview()
+        self.crear_botonera_inferior(layout)
 
         return pagina
 
@@ -1091,98 +924,65 @@ class VentanaSettings(QDialog):
         pagina = QWidget()
 
         layout = QVBoxLayout()
+        pagina.setLayout(layout)
 
         titulo = QLabel(
             "Colores"
         )
 
-        titulo.setFont(
-            QFont(
-                "Arial",
-                24,
-                QFont.Weight.Bold
-            )
-        )
+        titulo.setObjectName("tituloPrincipalSettings")
 
         layout.addWidget(
             titulo
         )
 
-        layout.addWidget(
-            QLabel(
-                "Personaliza los colores de la interfaz."
-            )
+        descripcion = QLabel(
+            "Personaliza los colores utilizados por la aplicación."
         )
 
-        layout.addSpacing(25)
+        descripcion.setObjectName("descripcionSettings")
+
+        layout.addWidget(
+            descripcion
+        )
+
+        formulario = QFormLayout()
 
         # COLOR MENÚ
 
-        fila_menu = QHBoxLayout()
-
-        fila_menu.addWidget(
-            QLabel(
-                "Color de barra de menú"
-            )
-        )
-
-        fila_menu.addStretch()
-
         self.btn_color_menu = QPushButton(
             self.color_menu
-        )
-
-        self.btn_color_menu.setFixedWidth(
-            150
         )
 
         self.btn_color_menu.clicked.connect(
             self.seleccionar_color_menu
         )
 
-        fila_menu.addWidget(
+        formulario.addRow(
+            "Color de la barra de menú:",
             self.btn_color_menu
-        )
-
-        layout.addLayout(
-            fila_menu
         )
 
         # COLOR LETRA
 
-        fila_letra = QHBoxLayout()
-
-        fila_letra.addWidget(
-            QLabel(
-                "Color de letra"
-            )
-        )
-
-        fila_letra.addStretch()
-
         self.btn_color_letra = QPushButton(
             self.color_letra
-        )
-
-        self.btn_color_letra.setFixedWidth(
-            150
         )
 
         self.btn_color_letra.clicked.connect(
             self.seleccionar_color_letra
         )
 
-        fila_letra.addWidget(
+        formulario.addRow(
+            "Color de letra:",
             self.btn_color_letra
         )
 
-        layout.addLayout(
-            fila_letra
-        )
+        layout.addLayout(formulario)
 
         layout.addStretch()
 
-        pagina.setLayout(layout)
+        self.crear_botonera_inferior(layout)
 
         return pagina
 
@@ -1194,46 +994,43 @@ class VentanaSettings(QDialog):
         pagina = QWidget()
 
         layout = QVBoxLayout()
+        pagina.setLayout(layout)
 
         titulo = QLabel(
             "Cuenta"
         )
 
-        titulo.setFont(
-            QFont(
-                "Arial",
-                24,
-                QFont.Weight.Bold
-            )
-        )
+        titulo.setObjectName("tituloPrincipalSettings")
 
         layout.addWidget(
             titulo
         )
 
-        layout.addWidget(
-            QLabel(
-                "Configura tu fotografía de perfil."
-            )
+        descripcion = QLabel(
+            "Personaliza tu información de perfil."
         )
 
-        layout.addSpacing(20)
+        descripcion.setObjectName("descripcionSettings")
+
+        layout.addWidget(
+            descripcion
+        )
 
         self.lbl_foto = QLabel(
-            "Sin fotografía"
+            "👤"
+        )
+
+        self.lbl_foto.setObjectName(
+            "fotoPerfil"
         )
 
         self.lbl_foto.setFixedSize(
-            180,
-            180
+            120,
+            120
         )
 
         self.lbl_foto.setAlignment(
             Qt.AlignmentFlag.AlignCenter
-        )
-
-        self.lbl_foto.setObjectName(
-            "fotoSettings"
         )
 
         layout.addWidget(
@@ -1242,7 +1039,7 @@ class VentanaSettings(QDialog):
         )
 
         self.btn_foto = QPushButton(
-            "Seleccionar fotografía"
+            "Cambiar foto"
         )
 
         self.btn_foto.clicked.connect(
@@ -1256,7 +1053,7 @@ class VentanaSettings(QDialog):
 
         layout.addStretch()
 
-        pagina.setLayout(layout)
+        self.crear_botonera_inferior(layout)
 
         self.actualizar_foto()
 
@@ -1269,7 +1066,7 @@ class VentanaSettings(QDialog):
 
         archivo, _ = QFileDialog.getOpenFileName(
             self,
-            "Seleccionar fotografía",
+            "Seleccionar foto de perfil",
             "",
             "Imágenes (*.png *.jpg *.jpeg *.bmp)"
         )
@@ -1296,8 +1093,8 @@ class VentanaSettings(QDialog):
             if not pixmap.isNull():
 
                 pixmap = pixmap.scaled(
-                    160,
-                    160,
+                    100,
+                    100,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
@@ -1306,10 +1103,12 @@ class VentanaSettings(QDialog):
                     pixmap
                 )
 
+                self.lbl_foto.setText("")
+
                 return
 
         self.lbl_foto.setText(
-            "Sin fotografía"
+            "👤"
         )
 
     # ========================================================
@@ -1317,7 +1116,11 @@ class VentanaSettings(QDialog):
 
     def seleccionar_color_menu(self):
 
-        color = QColorDialog.getColor()
+        color = QColorDialog.getColor(
+            QColor(self.color_menu),
+            self,
+            "Seleccionar color de menú"
+        )
 
         if color.isValid():
 
@@ -1329,7 +1132,11 @@ class VentanaSettings(QDialog):
 
     def seleccionar_color_letra(self):
 
-        color = QColorDialog.getColor()
+        color = QColorDialog.getColor(
+            QColor(self.color_letra),
+            self,
+            "Seleccionar color de letra"
+        )
 
         if color.isValid():
 
@@ -1337,43 +1144,6 @@ class VentanaSettings(QDialog):
 
             self.btn_color_letra.setText(
                 self.color_letra
-            )
-
-    # ========================================================
-    # PREVIEW
-
-    def actualizar_preview(self):
-
-        if self.combo_tema.currentData() == "oscuro":
-
-            self.preview.setStyleSheet(
-                """
-                QFrame {
-                    background-color: #15171C;
-                    border: 1px solid #3A3D46;
-                    border-radius: 12px;
-                }
-
-                QLabel {
-                    color: #EDEDED;
-                }
-                """
-            )
-
-        else:
-
-            self.preview.setStyleSheet(
-                """
-                QFrame {
-                    background-color: #F4F4F4;
-                    border: 1px solid #CCCCCC;
-                    border-radius: 12px;
-                }
-
-                QLabel {
-                    color: #222222;
-                }
-                """
             )
 
     # ========================================================
@@ -1425,13 +1195,6 @@ class VentanaSettings(QDialog):
 
         if exito:
 
-            QMessageBox.information(
-                self,
-                "Configuración",
-                mensaje if mensaje else
-                "¡Configuración guardada con éxito!"
-            )
-
             if self.actualizar_principal:
 
                 self.actualizar_principal(
@@ -1462,6 +1225,63 @@ class VentanaSettings(QDialog):
 
             QLabel {
                 color: #EDEDED;
+                font-size: 14px;
+            }
+
+            #tituloSettings {
+                font-size: 21px;
+                font-weight: bold;
+                padding: 12px;
+            }
+
+            #tituloPrincipalSettings {
+                font-size: 27px;
+                font-weight: bold;
+                padding-top: 10px;
+                padding-bottom: 5px;
+            }
+
+            #subtitulo {
+                font-size: 18px;
+                font-weight: bold;
+                margin-top: 15px;
+            }
+
+            #descripcionSettings {
+                color: #A5A5A5;
+                font-size: 14px;
+                padding-bottom: 20px;
+            }
+
+            QPushButton {
+                background-color: #20232A;
+                color: #EDEDED;
+                border: 1px solid #3A3D46;
+                border-radius: 7px;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            QPushButton:hover {
+                background-color: #343740;
+            }
+
+            #botonActivo {
+                background-color: #7048A8;
+                border: none;
+                font-weight: bold;
+            }
+
+            #botonGuardar {
+                background-color: #7048A8;
+                border: none;
+                color: white;
+                font-weight: bold;
+                padding: 12px 20px;
+            }
+
+            #botonGuardar:hover {
+                background-color: #8359BB;
             }
 
             QLineEdit,
@@ -1469,35 +1289,29 @@ class VentanaSettings(QDialog):
             QSpinBox {
                 background-color: #20232A;
                 color: #EDEDED;
-                border: 1px solid #3A3D46;
-                border-radius: 8px;
+                border: 1px solid #444750;
+                border-radius: 5px;
                 padding: 9px;
             }
 
-            QPushButton {
+            QComboBox QAbstractItemView {
+                background-color: #20232A;
+                color: #EDEDED;
+                selection-background-color: #7048A8;
+            }
+
+            #preview {
+                background-color: #20232A;
+                border: 1px solid #3A3D46;
+                border-radius: 10px;
+                padding: 20px;
+            }
+
+            #fotoPerfil {
                 background-color: #7048A8;
+                border-radius: 60px;
+                font-size: 55px;
                 color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 10px 16px;
-            }
-
-            QPushButton:hover {
-                background-color: #8259BC;
-            }
-
-            QPushButton[activo="true"] {
-                background-color: #7048A8;
-            }
-
-            QPushButton[activo="false"] {
-                background-color: #20232A;
-            }
-
-            QLabel#fotoSettings {
-                background-color: #20232A;
-                border: 2px solid #7048A8;
-                border-radius: 90px;
             }
             """
         )
