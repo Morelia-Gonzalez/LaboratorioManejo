@@ -3,7 +3,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QPushButton
 from PyQt6.QtWidgets import QDialog, QLineEdit, QComboBox, QSpinBox, QFormLayout
 from PyQt6.QtWidgets import QColorDialog, QFileDialog, QMessageBox, QStackedWidget
-from PyQt6.QtGui import QAction, QFont, QColor, QPixmap
+from PyQt6.QtGui import QAction, QFont, QColor, QPixmap, QPainter, QPainterPath, QPen
 from PyQt6.QtCore import Qt
 
 from app import AppConfig
@@ -25,6 +25,38 @@ def guardar_configuracion(config):
         return resultado
 
     return resultado, ""
+
+
+def aplicar_recorte_circular(pixmap_original, size=120):
+    pixmap_escalado = pixmap_original.scaled(
+        size,
+        size,
+        Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+        Qt.TransformationMode.SmoothTransformation
+    )
+
+    pixmap_resultado = QPixmap(size, size)
+    pixmap_resultado.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap_resultado)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+
+    path = QPainterPath()
+    path.addEllipse(0, 0, size, size)
+    painter.setClipPath(path)
+
+    x = (size - pixmap_escalado.width()) // 2
+    y = (size - pixmap_escalado.height()) // 2
+    painter.drawPixmap(x, y, pixmap_escalado)
+
+    # Borde morado elegante
+    pen = QPen(QColor("#7048A8"), 3)
+    painter.setPen(pen)
+    painter.drawEllipse(1, 1, size - 2, size - 2)
+
+    painter.end()
+
+    return pixmap_resultado
 
 
 # VENTANA PRINCIPAL
@@ -370,15 +402,10 @@ class VentanaPrincipal(QMainWindow):
 
             if not pixmap.isNull():
 
-                pixmap = pixmap.scaled(
-                    120,
-                    120,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                )
+                pixmap_circular = aplicar_recorte_circular(pixmap, 120)
 
                 self.foto_principal.setPixmap(
-                    pixmap
+                    pixmap_circular
                 )
 
                 self.foto_principal.setText("")
@@ -441,6 +468,7 @@ class VentanaPrincipal(QMainWindow):
                 border-radius: 60px;
                 font-size: 55px;
                 color: white;
+                qproperty-alignment: 'AlignCenter';
             }}
 
             #descripcionIzquierda {{
@@ -1092,21 +1120,17 @@ class VentanaSettings(QDialog):
 
             if not pixmap.isNull():
 
-                pixmap = pixmap.scaled(
-                    100,
-                    100,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation
-                )
+                pixmap_circular = aplicar_recorte_circular(pixmap, 120)
 
                 self.lbl_foto.setPixmap(
-                    pixmap
+                    pixmap_circular
                 )
 
                 self.lbl_foto.setText("")
 
                 return
 
+        self.lbl_foto.setPixmap(QPixmap())
         self.lbl_foto.setText(
             "👤"
         )
@@ -1312,6 +1336,7 @@ class VentanaSettings(QDialog):
                 border-radius: 60px;
                 font-size: 55px;
                 color: white;
+                qproperty-alignment: 'AlignCenter';
             }
             """
         )
